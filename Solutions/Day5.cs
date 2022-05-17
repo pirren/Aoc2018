@@ -23,31 +23,34 @@ namespace Aoc2018.Solutions
             var rules = ParseRules();
             var polymer = ParsePolymerBatches(indata);
 
-            return Trigger(polymer, rules).Single().sequence.Length;
+            return GetPolyLength(polymer, rules);
         }
 
         public override object PartTwo(string indata)
         {
-            // What is the length of the shortest polymer you can produce
+            // Part 2: What is the length of the shortest polymer you can produce
             var rules = ParseRules();
 
-            return Range(rules.Count).Select(skippedRule =>
-                Trigger(ParsePolymerBatches(indata, rules[skippedRule]), rules).Single().sequence.Length).Min();
+            List<int> polyLengths = new();
+            Parallel.ForEach(rules, rule =>
+            {
+                polyLengths.Add(GetPolyLength(ParsePolymerBatches(indata, rule), rules));
+            });
+
+            return polyLengths.Min();
         }
 
-        IEnumerable<int> Range(int count) => Enumerable.Range(0, count);
-
-        private List<(int batchId, string sequence)> Trigger(List<(int, string)> polymer, List<string> rules)
+        private int GetPolyLength(List<(int, string)> polymer, List<string> rules)
         {
             var (newPolymer, newState) = React(polymer, rules);
+            
+            if (newState.Equals(PolyState.FinishedWork))
+                return newPolymer.Single().sequence.Length;
 
-            if (newPolymer.Count == 1 && newState == PolyState.FinishedWork)
-                return newPolymer;
-
-            return Trigger(newPolymer, rules);
+            return GetPolyLength(newPolymer, rules);
         }
 
-        private (List<(int, string)>, PolyState) React(List<(int batchId, string sequence)> polymer, List<string> rules)
+        private (List<(int, string sequence)>, PolyState) React(List<(int batchId, string sequence)> polymer, List<string> rules)
         {
             // we find out what rules applies on which batch to avoid uneccessary work
             var activeWork = (from poly in polymer

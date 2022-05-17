@@ -162,4 +162,3 @@ namespace Aoc2018.Solutions
         }
     }
 }
-

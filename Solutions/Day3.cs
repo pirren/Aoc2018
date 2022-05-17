@@ -10,7 +10,7 @@ namespace Aoc2018.Solutions
 
         public override object PartOne(string indata)
         {
-            // How many square inches of fabric are within two or more claims?
+            // Part 1: How many square inches of fabric are within two or more claims?
             var claims = ParseClaims(indata).Select(x => (x.pos, x.size)).ToList();
             Dictionary<(int, int), int> overlaps = new();
 
@@ -34,6 +34,7 @@ namespace Aoc2018.Solutions
 
         public override object PartTwo(string indata)
         {
+            // Part 2: What is the ID of the only claim that doesn't overlap?
             var claims = ParseClaims(indata).ToList();
             Dictionary<(int y, int x), (int count, List<int> IDs)> overlaps = new();
             foreach (var (id, pos, size) in claims)
@@ -55,7 +56,6 @@ namespace Aoc2018.Solutions
                 }
             }
 
-            // What is the ID of the only claim that doesn't overlap?
             var candidates = overlaps.Where(x => x.Value.count == 1).SelectMany(x => x.Value.IDs).Distinct();
             var bad = overlaps.Where(x => x.Value.count > 1).SelectMany(x => x.Value.IDs).Distinct();
 
