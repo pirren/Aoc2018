@@ -49,5 +49,8 @@ namespace Aoc2018.Library
         {
             foreach (T item in source) action(item);
         }
+
+        public static int Manhattan(this (int x, int y) p, (int x, int y) other)
+            => Math.Abs(other.x - p.x) + Math.Abs(other.y - p.y);
     }
 }
