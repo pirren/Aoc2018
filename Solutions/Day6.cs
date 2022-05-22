@@ -1,5 +1,4 @@
 ﻿using Aoc2018.Library;
-using System.Threading.Tasks;
 
 namespace Aoc2018.Solutions
 {
@@ -16,13 +15,12 @@ namespace Aoc2018.Solutions
             // Part 1: What is the size of the largest area that isn't infinite?
             var points = GetPoints(indata);
             var grid = GetBoundingGrid(points);
-
             return LargestFiniteArea(points, grid);
         }
 
         public override object PartTwo(string indata)
         {
-            // What is the size of the region containing all locations which have a total
+            // Part 2: What is the size of the region containing all locations which have a total
             // distance to all given coordinates of less than 10000?
             var points = GetPoints(indata);
             var grid = GetBoundingGrid(points);
@@ -68,11 +66,6 @@ namespace Aoc2018.Solutions
 
     public static class Ext6
     {
-        //public static int AbsValue(this (int x, int y) point, (int x, int y) otherPoint)
-        //{
-        //    return Math.Abs(point.x - otherPoint.x) + Math.Abs(point.y - otherPoint.y);
-        //}
-
         public static int SafestRegionSize(this List<(int x, int y)> points, Day6.BoundingGrid grid, int distance = 10000)
         {
             int size = 0;
