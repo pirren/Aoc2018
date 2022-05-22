@@ -17,17 +17,41 @@ namespace Aoc2018.Solutions
             var startNode = tree.Where(x => !x.PrevSteps.Any()).OrderBy(x => x.Step).First();
             tree.Remove(startNode);
 
-            return ChainTree(tree, new List<string> { startNode.Step }, startNode.Step);
+            return ChainTree(tree, new List<string> { startNode.Step });
         }
 
         public override object PartTwo(string indata)
         {
             // Part 2: With 5 workers and the 60+ second step durations described above,
             //      how long will it take to complete all of the steps?
-            return 0;
+            var tree = ParseNodeTree(indata);
+            var startNode = tree.Where(x => !x.PrevSteps.Any()).OrderBy(x => x.Step).First();
+            tree.Remove(startNode);
+            return SimulChainTree(tree, new List<string> { startNode.Step });
         }
 
-        private string ChainTree(List<Node> remainingNodes, List<string> visited, string chain)
+        private int SimulChainTree(List<Node> remainingNodes, List<string> visited)
+        {
+            if (!remainingNodes.Any()) return 0;
+            Node next = new();
+
+            if (remainingNodes.Count == 1)
+            {
+                next = remainingNodes.Single();
+            }
+            else
+            {
+                next = remainingNodes.Where(remain => remain.PrevSteps.All(x => visited.Contains(x))).OrderBy(a => a.Step).FirstOrDefault();
+            }
+            var test = Convert.ToInt32(next.Step[0] - 64);
+            var test2 = Convert.ToInt32('A' - 64);
+            remainingNodes.Remove(next);
+            visited.Add(next.Step);
+
+            return SimulChainTree(remainingNodes, visited);
+        }
+
+        private string ChainTree(List<Node> remainingNodes, List<string> visited)
         {
             if (!remainingNodes.Any()) return String.Concat(visited);
             Node next = new();
@@ -43,9 +67,8 @@ namespace Aoc2018.Solutions
 
             remainingNodes.Remove(next);
             visited.Add(next.Step);
-            chain += next.Step;
 
-            return ChainTree(remainingNodes, visited, chain);
+            return ChainTree(remainingNodes, visited);
         }
 
         private readonly string prevNodePattern = @"Step (.*?) must";

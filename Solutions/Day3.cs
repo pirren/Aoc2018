@@ -56,10 +56,9 @@ namespace Aoc2018.Solutions
                 }
             }
 
-            var candidates = overlaps.Where(x => x.Value.count == 1).SelectMany(x => x.Value.IDs).Distinct();
-            var bad = overlaps.Where(x => x.Value.count > 1).SelectMany(x => x.Value.IDs).Distinct();
-
-            return candidates.FirstOrDefault(x => !bad.Contains(x));
+            var candidates = overlaps.Where(x => x.Value.count == 1).SelectMany(x => x.Value.IDs).Distinct().OrderBy(x => x).ToList();
+            var bad = overlaps.Where(x => x.Value.count > 1).SelectMany(x => x.Value.IDs).Distinct().OrderBy(x => x).ToList();
+            return candidates.Except(bad).Single();
         }
 
         public IEnumerable<(int id, (int x, int y) pos, (int x, int y) size)> ParseClaims(string indata)
