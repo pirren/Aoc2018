@@ -10,8 +10,6 @@ namespace Aoc2018.Solutions
         public override int Day => 7;
         public override bool UseSample => base.UseSample;
 
-        public record struct BoundingGrid(int MinX, int MaxX, int MinY, int MaxY);
-
         public override object PartOne(string indata)
         {
             // Part 1: In what order should the steps in your instructions be completed?
@@ -76,10 +74,5 @@ namespace Aoc2018.Solutions
         }
 
         record struct Node(string Step, List<string> PrevSteps);
-    }
-
-    public static class Ext7
-    {
-
     }
 }
