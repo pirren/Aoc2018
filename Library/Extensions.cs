@@ -13,6 +13,13 @@ namespace Aoc2018.Library
         public static float ToFloat(this string str)
             => float.Parse(str);
 
+
+        public static T Pop<T>(this List<T> list, T target)
+        {
+            list.Remove(target);
+            return target;
+        }
+
         public static T PopAt<T>(this List<T> list, int idx)
         {
             T r = list[idx];
