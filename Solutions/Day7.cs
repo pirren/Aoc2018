@@ -1,5 +1,4 @@
 ﻿using Aoc2018.Library;
-using System.Text;
 using System.Text.RegularExpressions;
 
 namespace Aoc2018.Solutions
@@ -15,78 +14,64 @@ namespace Aoc2018.Solutions
         public override object PartOne(string indata)
         {
             // Part 1: In what order should the steps in your instructions be completed?
-            //var tree = ParseNodeTree(indata);
-            //var startNode = tree.Where(x => !x.PrevSteps.Any()).OrderBy(x => x.Step).First();
-            //tree.Remove(startNode);
-
-            return new Tree().ParseNodes(indata).ChainTree();
+            var tree = new Tree(ParseNodes(indata));
+            return tree.ChainSequence();
         }
 
         public override object PartTwo(string indata)
         {
             // Part 2: With 5 workers and the 60+ second step durations described above,
             //      how long will it take to complete all of the steps?
-            //var tree = ParseNodeTree(indata);
-            //SetupWorkers();
-            return new Tree().ParseNodes(indata).SimulChainTree();
+            var tree = new Tree(ParseNodes(indata));
+            return tree.ChainTime();
+        }
+
+        public List<WorkStep> ParseNodes(string indata)
+        {
+            string prevNodePattern = @"Step (.*?) must";
+            string nodePattern = @"step (.*?) can";
+
+            var data = indata.Split("\r\n").Select(x => new
+            {
+                Prev = Regex.Matches(x, prevNodePattern).Single().Groups[1].Value,
+                Step = Regex.Matches(x, nodePattern).Single().Groups[1].Value
+            });
+
+            var nodes = data.GroupBy(x => x.Step).Select(x => new WorkStep
+            {
+                Step = x.Key,
+                PrevSteps = x.Select(x => x.Prev).ToList()
+            }).ToList();
+
+            // add startnodes on top
+            nodes.AddRange(data.SelectMany(x => x.Prev)
+                .Distinct()
+                .Where(n => !nodes.Select(x => x.Step).Contains(n.ToString()))
+                .Select(x => new WorkStep(x.ToString(), new())));
+            
+            return nodes;
         }
 
         public class Tree
         {
-            public record struct WorkStep(string Step, List<string> PrevSteps);
-
-            protected List<Worker> Workers = new();
-            protected List<WorkStep> Nodes = new();
-            protected List<string> Visited = new();
-
-            public Tree()
+            public Tree(List<WorkStep> nodes)
             {
+                Nodes = nodes;
                 Workers = Enumerable.Range(0, amountWorkers).Select(x => new Worker()).ToList();
             }
 
-            public Tree ParseNodes(string indata)
+            protected List<Worker> Workers = new();
+            protected List<WorkStep> Nodes = new();
+            protected List<string> CompletedSteps = new();
+
+            public int ChainTime(int time = 0)
             {
-                string prevNodePattern = @"Step (.*?) must";
-                string nodePattern = @"step (.*?) can";
-
-                var data = indata.Split("\r\n").Select(x => new
-                {
-                    Prev = Regex.Matches(x, prevNodePattern).Single().Groups[1].Value,
-                    Step = Regex.Matches(x, nodePattern).Single().Groups[1].Value
-                });
-
-                var nodes = data.GroupBy(x => x.Step).Select(x => new WorkStep
-                {
-                    Step = x.Key,
-                    PrevSteps = x.Select(x => x.Prev).ToList()
-                }).ToList();
-
-                // add startnodes on top
-                nodes.AddRange(data.SelectMany(x => x.Prev)
-                    .Distinct()
-                    .Where(n => !nodes.Select(x => x.Step).Contains(n.ToString()))
-                    .Select(x => new WorkStep(x.ToString(), new())));
-
-                Nodes = nodes;
-                return this;
-            }
-
-            public int SimulChainTree(int time = 0)
-            {
-                if (!Nodes.Any()) return time - 1;
-
-                foreach (var worker in Workers.Where(w => !string.IsNullOrEmpty(w.Step)))
-                {
-                    var (success, step) = worker.Work();
-                    if (!success) continue;
-
-                    Visited.Add(step);
-                    time += step.TaskTime();
-                }
+                if (!Nodes.Any() && Workers.All(x => string.IsNullOrEmpty(x.Step))) return time;
+                time++;
 
                 while (true)
                 {
-                    var work = Nodes.AvailableNodes(Visited);
+                    var work = Nodes.AvailableNodes(CompletedSteps);
                     if (!work.Any()) break;
 
                     var worker = Workers.Where(w => string.IsNullOrEmpty(w.Step)).FirstOrDefault();
@@ -95,12 +80,20 @@ namespace Aoc2018.Solutions
                     worker.Step = Nodes.Pop(work.First()).Step;
                 }
 
-                return SimulChainTree(time);
+                foreach (var worker in Workers.Where(w => !string.IsNullOrEmpty(w.Step)))
+                {
+                    var (success, step) = worker.Work();
+                    if (!success) continue;
+
+                    CompletedSteps.Add(step);
+                }
+
+                return ChainTime(time);
             }
 
-            public string ChainTree()
+            public string ChainSequence()
             {
-                if (!Nodes.Any()) return String.Concat(Visited);
+                if (!Nodes.Any()) return String.Concat(CompletedSteps);
                 WorkStep next;
 
                 if (Nodes.Count == 1)
@@ -109,14 +102,16 @@ namespace Aoc2018.Solutions
                 }
                 else
                 {
-                    next = Nodes.AvailableNodes(Visited).First();
+                    next = Nodes.AvailableNodes(CompletedSteps).First();
                 }
 
-                Visited.Add(Nodes.Pop(next).Step);
+                CompletedSteps.Add(Nodes.Pop(next).Step);
 
-                return ChainTree();
+                return ChainSequence();
             }
         }
+
+        public record struct WorkStep(string Step, List<string> PrevSteps) { }
 
         public class Worker
         {
@@ -126,15 +121,13 @@ namespace Aoc2018.Solutions
 
             public (bool success, string task) Work()
             {
-                var debug = Step.TaskTime();
-
                 Time++;
-                if(Time != Step.TaskTime())
-                    return (false, string.Empty);
+
+                if(Time < Step.TaskTime()) return (false, string.Empty);
 
                 var returnTask = Step;
-
                 Reset();
+
                 return (true, returnTask);
             }
 
@@ -149,9 +142,10 @@ namespace Aoc2018.Solutions
     public static class Ext7 
     {
         public static int TaskTime(this string str)
-            => Convert.ToInt32(char.Parse(str) - 64) + 60;
+            => Convert.ToInt32(char.Parse(str) - 64) + 60; // letter position in alphabet + 60 (1 minute)
 
-        public static IEnumerable<Day7.Tree.WorkStep> AvailableNodes(this List<Day7.Tree.WorkStep> remaining, List<string> visited)
-            => remaining.Where(remain => !remain.PrevSteps.Any() || remain.PrevSteps.All(x => visited.Contains(x))).OrderBy(a => a.Step).ToList();
+        public static IEnumerable<Day7.WorkStep> AvailableNodes(this List<Day7.WorkStep> remaining, List<string> visited)
+            => remaining.Where(remain => !remain.PrevSteps.Any() || remain.PrevSteps.All(x => visited.Contains(x)))
+                .OrderBy(a => a.Step);
     }
 }
