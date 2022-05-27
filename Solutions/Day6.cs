@@ -8,7 +8,7 @@ namespace Aoc2018.Solutions
         public override int Day => 6;
         public override bool UseSample => base.UseSample;
 
-        public record struct BoundingGrid(int MinX, int MaxX, int MinY, int MaxY);
+        public record struct BoundingGrid(int MinX, int MaxX, int MinY, int MaxY) { }
 
         public override object PartOne(string indata)
         {

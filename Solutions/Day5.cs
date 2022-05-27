@@ -9,7 +9,7 @@ namespace Aoc2018.Solutions
         public override bool UseSample => base.UseSample;
 
         protected static int MaxBatchSize => 2000; // seems to be fastest size for this solution
-        record struct ActiveWork(List<string> Rules, int BatchId, List<(string before, string after)> Seen);
+        record struct ActiveWork(List<string> Rules, int BatchId, List<(string before, string after)> Seen) { }
         enum PolyState
         {
             FinishedBatch,
