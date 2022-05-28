@@ -19,7 +19,6 @@ namespace Aoc2018.Solutions
         public override object PartTwo(string indata)
         {
             // Part 2: What is the value of the root node?
-
             var data = ParseIndata(indata);
             var package = DequeueTree(data);
             return RootNodeValue(package);

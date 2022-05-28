@@ -4,8 +4,8 @@
     {
         public enum SolutionPart
         {
-            PartA,
-            PartB
+            PartOne,
+            PartTwo
         }
 
         private const string indataFolder = "Indata";

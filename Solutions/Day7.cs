@@ -65,11 +65,11 @@ namespace Aoc2018.Solutions
             protected List<string> CompletedSteps = new();
 
             private IEnumerable<Worker> AvailableWorkers => Workers.Where(x => string.IsNullOrEmpty(x.Step));
-            private IEnumerable<Worker> ActiveWorkers => Workers.Except(AvailableWorkers);
+            private IEnumerable<Worker> BusyWorkers => Workers.Except(AvailableWorkers);
 
             public int ChainTime(int time = 0)
             {
-                if (!Nodes.Any() && !ActiveWorkers.Any()) return time;
+                if (!Nodes.Any() && !BusyWorkers.Any()) return time;
 
                 while (true)
                 {
@@ -82,7 +82,7 @@ namespace Aoc2018.Solutions
                     worker.Step = Nodes.Pop(work.First()).Step;
                 }
 
-                foreach (var worker in ActiveWorkers)
+                foreach (var worker in BusyWorkers)
                 {
                     var (success, step) = worker.Work();
                     if (!success) continue;
@@ -128,8 +128,8 @@ namespace Aoc2018.Solutions
 
                 if(Time < Step.TaskTime()) return (false, string.Empty);
 
-                var returnTask = Step;
-                Reset();
+                var returnTask = Step; // capture this before reset
+                this.Reset();
 
                 return (true, returnTask);
             }
