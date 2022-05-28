@@ -12,14 +12,14 @@ namespace Aoc2018.Solutions
         {
             // Part 1: What is the winning Elf's score?
             var settings = GetSettings(indata, SolutionPart.PartOne);
-            return PlayGame(new GameBuffer(settings.LastMarble), settings).Select(x => x.Value).Max(); // 8317
+            return PlayGame(new GameBuffer(settings.LastMarble), settings).Select(x => x.Value.Sum()).Max(); // 8317
         }
 
         public override object PartTwo(string indata)
         {
             // Part 2: What is the value of the root node?
             var settings = GetSettings(indata, SolutionPart.PartTwo);
-            return PlayGame(new GameBuffer(settings.LastMarble), settings).Select(x => x.Value).Max();
+            return PlayGame(new GameBuffer(settings.LastMarble), settings).Select(x => x.Value.Sum()).Max();
         }
 
         /// <summary>
@@ -27,7 +27,7 @@ namespace Aoc2018.Solutions
         /// </summary>
         /// <param name="settings"></param>
         /// <returns></returns>
-        private Dictionary<int, int> PlayGame(GameBuffer game, GameSettings settings) 
+        private Dictionary<int, List<long>> PlayGame(GameBuffer game, GameSettings settings) 
         {
             int currentPlayer = 0;
 
@@ -35,11 +35,11 @@ namespace Aoc2018.Solutions
 
             while(true)
             {
-
                 var turnResult = game.PlaceNext();
-                playerScores[currentPlayer] += turnResult.Score;
+                if(turnResult.Score != 0) playerScores[currentPlayer].Add(turnResult.Score);
 
-                if (turnResult.CurrentMarble.Equals(settings.LastMarble)) break; // game is over
+                if (turnResult.CurrentMarble.Equals(settings.LastMarble)) 
+                    break; // game is over
                 currentPlayer = NextPlayerTurn(settings.Players, currentPlayer);
             }
 
@@ -52,10 +52,10 @@ namespace Aoc2018.Solutions
             return currentPlayer > totalPlayers - 1 ? 0 : currentPlayer;
         }
 
-        Dictionary<int, int> GetPlayers(GameSettings settings)
+        Dictionary<int, List<long>> GetPlayers(GameSettings settings)
         {
-            Dictionary<int, int> playerScores = new();
-            Enumerable.Range(0, settings.Players).ForEach(player => playerScores.Add(player, 0));
+            Dictionary<int, List<long>> playerScores = new();
+            Enumerable.Range(0, settings.Players).ForEach(player => playerScores.Add(player, new()));
             return playerScores;
         }
 
@@ -107,7 +107,7 @@ namespace Aoc2018.Solutions
         }
 
         public record struct GameSettings(int Players, int LastMarble) { }
-        public record struct TurnResult(int Score, int CurrentMarble) { }
+        public record struct TurnResult(long Score, int CurrentMarble) { }
     }
 
     public static class Ext9
@@ -120,7 +120,7 @@ namespace Aoc2018.Solutions
         public static int GetScoreMarble(this int pointer, int size)
         {
             var newPointer = pointer - 7;
-            if (newPointer < 0) return size - Math.Abs(newPointer);
+            if (newPointer < 0) return size + newPointer;
             return newPointer > size ? newPointer - size : newPointer;
         }
     }
