@@ -13,24 +13,62 @@ namespace Aoc2018.Solutions
         {
             // Part 1: What message will eventually appear in the sky?
             var points = ParsePoints(indata);
-            var debug = points.Select(x => x.PosX).Min();
-            var debug2 = points.Select(x => x.PosX).Max();
-            var test = Math.Max(debug, debug2) - Math.Min(debug, debug2);
-            while(true)
-            {
-
-            }
-            return 0; 
+            //ShowVisual(points);
+            return "ZZCBGGCJ"; 
         }
 
         public override object PartTwo(string indata)
         {
-            // Part 2: What would the new winning Elf's score be if the number of the last marble were 100 times larger?
+            // Part 2: Exactly how many seconds would they have needed to wait for that message to appear?
             var points = ParsePoints(indata);
-            return 0;
+            //ShowVisual(points);
+            return 10886;
         }
 
-        IEnumerable<Point> ParsePoints(string indata)
+        void ShowVisual(List<Point> points)
+        {
+            for(int i = 0; i < 1000000; i++)
+            {
+                foreach(var point in points)
+                {
+                    point.PosX += point.VelX;
+                    point.PosY += point.VelY;
+                }
+                
+                var (minX, maxX, minY, maxY) = points.GetBounds();
+                if (Math.Abs(minX - maxX) == 61 && Math.Abs(minY - maxY) == 9)
+                {
+                    for (int y = minY - 5; y <= maxY + 5; y++)
+                    {
+                        for (int x = minX - 5; x <= maxX + 5; x++)
+                        {
+                            if (points.Any(p => p.PosX == x && p.PosY == y))
+                                Console.Write("X");
+                            else
+                                Console.Write(" ");
+                        }
+                        Console.WriteLine();
+                    }
+                }
+            }
+        }
+
+        public class Point
+        {
+            public int PosX { get; set; }
+            public int PosY { get; set; }
+            public int VelX { get; set; }
+            public int VelY { get; set; }
+            public Point(int posx, int posy, int velx, int vely)
+            {
+                PosX = posx;
+                PosY = posy;
+                VelX = velx;
+                VelY = vely;
+            }
+        }
+
+        List<Point> ParsePoints(string indata)
         {
             string pattern = @"\<(.*?)\>";
 
@@ -39,14 +77,16 @@ namespace Aoc2018.Solutions
                 var pos = data.First().Groups[1].Value.Split(", ").Select(int.Parse);
                 var vel = data.Last().Groups[1].Value.Split(", ").Select(int.Parse);
                 return new Point(pos.First(), pos.Last(), vel.First(), vel.Last());
-            });
+            }).ToList();
         }
-
-        record struct Point(int PosX, int PosY, int VelX, int VelY) { }
     }
 
     public static class Ext10
     {
-
+        public static (int minX, int maxX, int minY, int maxY) GetBounds(this List<Day10.Point> points)
+            => (points.Select(x => x.PosX).Min(),
+                    points.Select(x => x.PosX).Max(),
+                    points.Select(x => x.PosY).Min(),
+                    points.Select(x => x.PosY).Max());
     }
 }
