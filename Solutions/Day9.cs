@@ -6,13 +6,13 @@ namespace Aoc2018.Solutions
     {
         public override string Name => "Marble Mania";
         public override int Day => 9;
-        public override bool UseSample => base.UseSample;
+        public override bool UseSample => !base.UseSample;
 
         public override object PartOne(string indata)
         {
             // Part 1: What is the winning Elf's score?
             var settings = GetSettings(indata, SolutionPart.PartOne);
-            return PlayGame(new GameBuffer(settings.LastMarble), settings).Select(x => x.Value.Sum()).Max(); // 8317
+            return PlayGame(new GameBuffer(settings.LastMarble), settings).Select(x => x.Value.Sum()).Max();
         }
 
         public override object PartTwo(string indata)
